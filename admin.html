@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>매루마블 (어드민 패널)</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
+    <script>window.IS_ADMIN_PAGE = true;</script>
+</head>
+<body>
+    <!-- App Container -->
+    <div id="app">
+        
+        <!-- Auth View for Admin -->
+        <div id="auth-view" class="view active">
+            <div class="glass-panel">
+                <h1>👑 관리자 전용</h1>
+                <p>수학 축제 관리자 접속 패널</p>
+                <div class="form-group">
+                    <input type="password" id="admin-pass" placeholder="관리자 비밀번호" autocomplete="off">
+                    <button id="admin-login-btn" class="primary-btn">로그인</button>
+                    <a href="index.html" style="color:#94A3B8; text-decoration:underline; font-size:0.9rem; margin-top:10px; display:block;">플레이어 화면으로 돌아가기</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Admin Control View -->
+        <div id="admin-view" class="view hidden">
+            <div class="glass-panel admin-panel" style="max-width: 1000px; width: 95%;">
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 1rem; margin-bottom: 1.5rem;">
+                    <h2 style="margin: 0;">👑 매루마블 마스터 컨트롤</h2>
+                    <button id="logout-admin-btn" class="secondary-btn" style="padding: 0.5rem 1rem;">로그아웃</button>
+                </div>
+                
+                <div class="admin-sections" style="display: flex; flex-direction: row; align-items: stretch; height: calc(100vh - 150px); min-height: 500px;">
+                    
+                    <!-- Left Column: Settings & Players -->
+                    <div id="admin-left" style="flex: 1; display: flex; flex-direction: column; gap: 1.5rem; overflow-y: auto; padding-right: 10px;">
+                        <div class="admin-section">
+                            <h3>⚙️ 게임 환경 설정</h3>
+                            <div class="form-group" style="gap: 0.8rem;">
+                                <div style="display:flex; justify-content:space-between; align-items:center;">
+                                    <span>보드판 크기:</span>
+                                    <select id="grid-size-select" style="padding:0.5rem; border-radius:8px; background:rgba(0,0,0,0.5); color:white; border:1px solid rgba(255,255,255,0.2);">
+                                        <option value="5">5x5 (16칸)</option>
+                                        <option value="7" selected>7x7 (24칸)</option>
+                                        <option value="10">10x10 (36칸)</option>
+                                    </select>
+                                </div>
+                                <div style="display:flex; justify-content:space-between; align-items:center;">
+                                    <span>이동 방향:</span>
+                                    <select id="direction-select" style="padding:0.5rem; border-radius:8px; background:rgba(0,0,0,0.5); color:white; border:1px solid rgba(255,255,255,0.2);">
+                                        <option value="clockwise" selected>시계 방향 ↻</option>
+                                        <option value="counterclockwise">반시계 방향 ↺</option>
+                                    </select>
+                                </div>
+                                <div style="display:flex; justify-content:space-between; align-items:center;">
+                                    <span>보드판 회전:</span>
+                                    <select id="rotation-select" style="padding:0.5rem; border-radius:8px; background:rgba(0,0,0,0.5); color:white; border:1px solid rgba(255,255,255,0.2);">
+                                        <option value="0" selected>기본 (0도)</option>
+                                        <option value="90">시계 방향 90도</option>
+                                        <option value="180">180도 뒤집기</option>
+                                        <option value="270">반시계 방향 90도</option>
+                                    </select>
+                                </div>
+                                <div style="display:flex; justify-content:space-between; align-items:center;">
+                                    <span>최소 시작 인원:</span>
+                                    <input type="number" id="min-players" value="2" min="1" max="10" style="width:80px; padding:0.5rem; text-align:center;">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="admin-section">
+                            <h3>👥 플레이어 현황 (<span id="admin-player-count">0</span>명)</h3>
+                            <ul id="waiting-players-list" style="max-height: 150px;"></ul>
+                            <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                                <button id="start-game-btn" class="primary-btn" style="flex:1;">게임 시작</button>
+                                <button id="end-game-btn" class="danger-btn" style="flex:1;">게임 강제 종료</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Resizer -->
+                    <div id="resizer" style="width: 10px; cursor: col-resize; background: rgba(255,255,255,0.1); border-radius: 5px; margin: 0 10px; transition: background 0.2s;"></div>
+
+                    <!-- Right Column: Minimap Editor -->
+                    <div id="admin-right" class="admin-section" style="flex: 1; display: flex; flex-direction: column; overflow-y: auto;">
+                        <h3>🗺️ 미니맵 수학 문제 관리</h3>
+                        <p style="font-size: 0.85rem; margin-bottom: 1rem; color: #cbd5e1;">
+                            미니맵 <b>타일</b>을 클릭해 문제를 심고, <b>플레이어 말</b>을 클릭해 치트키를 쓰세요.<br>
+                            * <b>모서리 칸:</b> 밟으면 <b>전원이 무인도로 소환</b>되어 문제를 풉니다.<br>
+                            * <b>일반 칸:</b> 밟은 <b>플레이어 혼자만</b> 문제를 풉니다.
+                        </p>
+                        
+                        <!-- Mini Map -->
+                        <div style="display:flex; justify-content:center; align-items:center; background:rgba(0,0,0,0.2); border-radius:16px; padding: 1rem; flex: 1; min-height: 300px; position: relative;">
+                            <div id="minimap" class="board minimap">
+                                <!-- JS generates tiles -->
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- Problem Editor Modal -->
+        <div id="problem-editor-modal" class="modal hidden">
+            <div class="glass-panel modal-content">
+                <h2 id="editor-tile-title">칸 문제 설정</h2>
+                <p id="editor-tile-desc" style="font-size:0.85rem; margin-bottom:1rem;"></p>
+                <div class="form-group">
+                    <input type="text" id="editor-q" placeholder="수학 문제 (비워두면 삭제됨)">
+                    <input type="text" id="editor-a" placeholder="정답">
+                    <div style="display:flex; gap:10px; margin-top:10px;">
+                        <button id="editor-save-btn" class="primary-btn" style="flex:1;">저장</button>
+                        <button id="editor-cancel-btn" class="secondary-btn" style="flex:1;">취소</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Player Control Modal -->
+        <div id="player-control-modal" class="modal hidden">
+            <div class="glass-panel modal-content" style="border-color: #F59E0B;">
+                <h2 id="player-control-title">플레이어 제어</h2>
+                <div class="form-group">
+                    <p style="font-size:0.9rem; color:#ccc;">다음 턴에 나올 주사위 눈을 강제로 조작합니다.</p>
+                    <select id="cheat-dice-select" style="padding:0.5rem; border-radius:8px; background:rgba(0,0,0,0.5); color:white; border:1px solid rgba(255,255,255,0.2);">
+                        <option value="">(조작 안함 / 초기화)</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                        <option value="6">6</option>
+                    </select>
+
+                    <p style="font-size:0.9rem; color:#ccc; margin-top:1rem;">다음 문제 칸 진입 시 출제될 저격용 문제</p>
+                    <input type="text" id="cheat-problem-q" placeholder="저격 문제 (비워두면 일반출제)">
+                    <input type="text" id="cheat-problem-a" placeholder="정답">
+                    
+                    <div style="display:flex; gap:10px; margin-top:10px;">
+                        <button id="player-control-save-btn" class="primary-btn" style="flex:1;">저장</button>
+                        <button id="player-control-cancel-btn" class="secondary-btn" style="flex:1;">취소</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+
+    <!-- Firebase CDN Dummy for compatibility -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    
+    <script src="app.js"></script>
+</body>
+</html>
